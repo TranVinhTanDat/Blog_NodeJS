@@ -10,18 +10,23 @@ const route = require('./routes');
 
 app.use(express.static(path.join(__dirname, 'public')));
 //Middleware
-app.use(express.urlencoded({
-  extended: true
-}));
+app.use(
+    express.urlencoded({
+        extended: true,
+    }),
+);
 app.use(express.json());
 
 // Middleware cho HTTP logger
 // app.use(morgan('combined'));
 
 // Thiết lập template engine
-app.engine('hbs', engine({
-  extname: '.hbs' 
-}));
+app.engine(
+    'hbs',
+    engine({
+        extname: '.hbs',
+    }),
+);
 app.set('view engine', 'hbs');
 
 // Tìm View
@@ -33,9 +38,6 @@ console.log('PATH: ', path.join(__dirname, 'resources', 'views'));
 // Roures Init
 route(app);
 
-
-
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+    console.log(`Example app listening on port ${port}`);
 });
-
