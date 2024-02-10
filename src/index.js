@@ -38,6 +38,6 @@ console.log('PATH: ', path.join(__dirname, 'resources', 'views'));
 // Roures Init
 route(app);
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+                            app.listen(port, () => {
+                                console.log(`Example app listening on port ${port}`);
+                            });
