@@ -5,9 +5,9 @@ class NewController {
     }
 
     //  [GET]/news/:slug
-                                        show(req, res) {
-                                            res.send('New Detail!!');
-                                        }
-                                    }
+    show(req, res) {
+        res.send('New Detail!!');
+    }
+}
 
-                                    module.exports = new NewController();
+module.exports = new NewController();
