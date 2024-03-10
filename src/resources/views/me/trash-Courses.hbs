@@ -1,0 +1,178 @@
+<form name="container-form" class="mt-4" method="POST" action="/courses/handle-form-actions">
+    <h3>Khóa Học Đã Xóa Của Tôi</h3>
+    <a href="/me/stored/courses" class="btn btn-danger">Danh Sách Khóa Học</a>
+  <div class="mt-4 d-flex align-items-center">
+
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="checkbox-all">
+            <label class="form-check-label" for="checkbox-all">
+              Chọn tất cả
+            </label>
+        </div>
+        <select class="form-control form-control-sm checkbox-select-all-options" name="action">
+          <option>-Hành Động-</option>
+          <option>Delete</option>
+          <option>Restore</option>
+          <option>ForcedDelete</option>
+        </select>
+
+
+      <button class="btn btn-primary btn-sm check-all-submit-btn" disabled> Thực Hiện </button>
+  </div>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col">Chọn</th>
+                <th scope="col">Stt</th>
+                <th scope="col">Tên Khóa Học</th>
+                <th scope="col">Trình Độ</th>
+                <th scope="col" colspan="2">Thời Gian Xóa</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each courses}}
+            <tr>
+              <td>
+                <div class="form-check">
+                    <input class= id="defaultCheck1" "form-check-input" type="checkbox" name="courseIds[]" id="" value="{{this._id}}">
+                    <label class="form-check-label" for="defaultCheck1"></label>
+                </div>
+                </td>
+                <th scope="row">{{sum @index 1}}</th>
+                <td>{{this.name}}</td>
+                <td>{{this.level}}</td>
+                <td>{{this.deletedAt}}</td>
+                <td>
+                    <a href="" class="btn btn-info btn-restore checkbox-item" data-id="{{this._id}}">Khôi phục</a>
+                    <a href="" class="btn btn-danger" data-id="{{this._id}}" data-toggle="modal" data-target="#delete-course-modal">Xóa Vĩnh Viễn</a>
+                </td>
+            </tr>
+
+            {{else}} 
+            <tr>
+                <td colspan="5" class="text-center">
+                    Thùng rác trống
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+</table>
+</form>
+
+{{!-- Confirm delete course --}}
+
+<div id="delete-course-modal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Thông báo</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Sau khi xóa vĩnh viễn bạn không thể khôi phục. Bạn có chắc chắn muốn xóa ?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+        <button type="button" id="btn-delete-course" class="btn btn-danger">Xóa bỏ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{!-- Delete Hiden Form --}}
+<form name="delete-course-form" method="POST"></form>
+<form name="restore-course-form" method="POST"></form>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var courseId;
+        var deleteForm = document.forms['delete-course-form'];
+        var restoreForm = document.forms['restore-course-form'];
+        var btnDeleteCourse = document.getElementById('btn-delete-course');
+        var btnRestore = $('.btn-restore');
+
+        var containerForm = $('form[name="container-form"]');
+        var checkboxAll = $('#checkbox-all');
+        var courseItemCheckbox = $('input[name="courseIds[]"]');
+        var checkAllSubmitBtn = $('.check-all-submit-btn');
+
+
+        // Xử lý khi dialog confirm được mở
+        $('#delete-course-modal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            courseId = button.data('id');
+        });
+
+        // Xử lý khi nút "Xóa bỏ" được click
+        btnDeleteCourse.onclick = function() {
+            deleteForm.action = '/courses/' + courseId + '/force?_method=DELETE';
+            deleteForm.submit();
+        };
+
+        // Xử lý khi nút "Khôi phục" được click
+        btnRestore.click(function(e) {
+            e.preventDefault();
+            var courseId = $(this).data('id'); // Gán giá trị của courseId từ data-id của nút
+            restoreForm.action = '/courses/' + courseId + '/restore?_method=PATCH';
+            restoreForm.submit();
+        });
+
+
+        // Checkbox all change event
+    checkboxAll.change(function () {
+        var isChecked = $(this).prop('checked');
+        courseItemCheckbox.prop('checked', isChecked);
+        renderCheckAllSubmitBtn();
+    });
+
+    // Course item checkbox changed
+    courseItemCheckbox.change(function () {
+        renderCheckAllSubmitBtn();
+        updateCheckboxAll();
+    });
+
+    // Re-render check all submit button
+    function renderCheckAllSubmitBtn() {
+        var checkedCount = $('input[name="courseIds[]"]:checked').length;
+        if (checkedCount > 0) {
+            checkAllSubmitBtn.prop('disabled', false);
+        } else {
+            checkAllSubmitBtn.prop('disabled', true);
+        }
+    }
+
+    // Update Checkbox All state
+    function updateCheckboxAll() {
+        var allChecked = true;
+        courseItemCheckbox.each(function () {
+            if (!$(this).prop('checked')) {
+                allChecked = false;
+                return false;
+            }
+        });
+        checkboxAll.prop('checked', allChecked);
+    }
+    
+
+
+    // Check all submit button clicked event
+    // Xử lý khi nút "Thực Hiện" được click
+      checkAllSubmitBtn.click(function(e) {
+          var actionSelected = $('select[name="action"]').val();
+          if (actionSelected === "ForcedDelete") {
+              var confirmed = confirm("Bạn có chắc chắn muốn xóa vĩnh viễn?");
+              if (!confirmed) {
+                  e.preventDefault(); // Ngăn chặn gửi biểu mẫu nếu người dùng hủy
+              } else {
+                  containerForm.submit(); // Gửi biểu mẫu nếu người dùng xác nhận
+              }
+          } else if (actionSelected === "-Hành Động-") {
+              e.preventDefault(); // Ngăn chặn gửi biểu mẫu nếu người dùng chưa chọn hành động
+              alert("Vui lòng chọn một hành động trước khi thực hiện.");
+          } else {
+              containerForm.submit(); // Gửi biểu mẫu với hành động được chọn
+          }
+      });
+});
+</script>
